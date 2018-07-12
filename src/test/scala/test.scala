@@ -16,40 +16,37 @@ class test extends FunSuite {
   case class S() extends Orientation
   case class O() extends Orientation
 
-  trait Position {
-    val x = 0
-    val y = 0
-    val o: Orientation = new N()
+  trait PositionBuilder {
+    val x: Int
+    val y: Int
+    val o: Orientation
   }
 
-  trait Limit {
-    val limit: Int
+  case class Position(x: Int, y: Int, o: Orientation) extends PositionBuilder
+
+
+
+  trait MapBuilder {
+    val N: Int
+    val E: Int
+    val S: Int
+    val O: Int
   }
+  case class MapLimits(N: Int, E: Int, S: Int, O: Int) extends MapBuilder
 
-  trait CityMap
-  case class N_Limit(limit: Limit) extends CityMap
-  case class E_Limit(limit: Limit) extends CityMap
-  case class S_Limit(limit: Limit) extends CityMap
-  case class O_Limit(limit: Limit) extends CityMap
+  case class Delivery(route : List[Try[Moves]])
 
-  trait Address {
-    val movesToReach: List[Moves]
-  }
-
-  trait Delivery {
-    val deliveries: List[Address]
-  }
-
-  trait Drone {
+  trait DroneBuilder {
     val name: String
     val input: String
     val output: String
-    val map: CityMap
+    val map: MapLimits
     val position: Position
-    val delivery: List[Delivery]
+    val delivery: Delivery
   }
 
-  case class DeliveryDrone(name: String, input: String, output: String, map: CityMap, position: Position, delivery: List[Delivery]) extends Drone
+  case class Drone(name: String, input: String, output: String,
+                           map: MapLimits, position: Position, delivery: Delivery) extends DroneBuilder
 
   object FileService {
     val rootPath = System.getProperty("user.dir")
@@ -69,7 +66,7 @@ class test extends FunSuite {
   }
 
   object DeliveryService {
-    def prepareDelivery(delivery: List[String]) : List[Try[Moves]] = {
+    def prepareDelivery(delivery: List[String]) : Delivery = {
 
       val newDelivery = delivery.flatMap(address => {
         address.map(move => {
@@ -83,7 +80,21 @@ class test extends FunSuite {
 
       })
 
-      newDelivery
+      new Delivery(newDelivery)
+    }
+  }
+
+  object DroneService {
+    def input(name: String): String = {
+      s"{$name}in.txt"
+    }
+    def output(name: String): String ={
+      s"{$name}out.txt"
+    }
+    def prepareDrone(name: String, delivery: Delivery) : Drone = {
+      val map = new MapLimits(10, 10, 10, 10)
+      val position = new Position(0, 0, N())
+      new Drone(name, input(name), output(name), map, position, delivery)
     }
   }
 
@@ -97,7 +108,7 @@ class test extends FunSuite {
   test("can prepare delivery") {
     val delivery = List("ALR", "LRf")
     val newDelivery = DeliveryService.prepareDelivery(delivery)
-    println(newDelivery)
+    assert(0 < newDelivery.route.length)
   }
 
   // leer el archivo
