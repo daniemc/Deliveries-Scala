@@ -1,4 +1,4 @@
-import java.io.{BufferedWriter, FileWriter}
+import java.io.{BufferedWriter, File, FileWriter}
 
 import org.scalatest._
 
@@ -79,7 +79,15 @@ class test extends FunSuite {
       } else {
         throw new Exception("Write failed: A message must be provided")
       }
+    }
 
+    @throws(classOf[Exception])
+    def list: List[String] = {
+      new File(fullPath).listFiles
+        .filter(file => file.isFile)
+        .map(file => file.getName)
+        .filter(file => file.startsWith("in") && file.endsWith("txt"))
+        .toList
     }
   }
 
@@ -143,6 +151,12 @@ class test extends FunSuite {
     val write2 = Try(FileService.write("text.txt", ""))
     assert(write.isFailure)
     assert(write2.isFailure)
+  }
+
+  test("can list files in a directory") {
+    val files = Try(FileService.list)
+    assert(files.isSuccess)
+    files.map(fileList => assert(0 < fileList.length))
   }
 
   test("can prepare delivery") {
