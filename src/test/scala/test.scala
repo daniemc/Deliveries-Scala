@@ -1,3 +1,5 @@
+import java.io.{BufferedWriter, FileWriter}
+
 import org.scalatest._
 
 import scala.util.{Failure, Success, Try}
@@ -54,7 +56,9 @@ class test extends FunSuite {
     def fullPath = {
       s"${ rootPath }/${ basePath }"
     }
-    def read(fileName: String) = {
+
+    @throws(classOf[Exception])
+    def read(fileName: String): List[String] = {
       var lines : List[String] = List()
       val bufferedSource = scala.io.Source.fromFile(s"$fullPath/$fileName")
       bufferedSource.getLines().foreach(fileLine => {
@@ -62,6 +66,20 @@ class test extends FunSuite {
       })
       bufferedSource.close()
       lines
+    }
+
+    @throws(classOf[Exception])
+    def write(fileName: String, message: String) = {
+      if (message != "") {
+        val path = s"${fullPath}/$fileName"
+        val writer = new BufferedWriter(new FileWriter(path, true))
+        writer.write(message)
+        writer.newLine()
+        writer.close()
+      } else {
+        throw new Exception("Write failed: A message must be provided")
+      }
+
     }
   }
 
@@ -106,8 +124,25 @@ class test extends FunSuite {
 
 
   test("can read a file") {
-    val file = FileService.read("in.txt")
-    assert(0 < file.length)
+    val file = Try(FileService.read("in.txt"))
+    assert(file.isSuccess)
+  }
+
+  test("if a bad file name is given should fail") {
+    val file = Try(FileService.read("badFile.txt"))
+    assert(file.isFailure)
+  }
+
+  test("can write a file") {
+    val write = Try(FileService.write("test.txt", "test message"))
+    assert(write.isSuccess)
+  }
+
+  test("writing a file should fail when i don't give a name or message") {
+    val write = Try(FileService.write("", "test message"))
+    val write2 = Try(FileService.write("text.txt", ""))
+    assert(write.isFailure)
+    assert(write2.isFailure)
   }
 
   test("can prepare delivery") {
