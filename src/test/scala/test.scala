@@ -67,20 +67,25 @@ class test extends FunSuite {
 
   object DeliveryService {
     def prepareDelivery(delivery: List[String]) : Delivery = {
-
-      val newDelivery = delivery.flatMap(address => {
-        address.map(move => {
-          move match {
-            case 'A' => Success(A())
-            case 'L' => Success(L())
-            case 'R' => Success(R())
-            case _ => Failure(new Exception("Move not valid"))
-          }
-        }).:+(Success(D()))
-
-      })
-
+      val newDelivery = delivery.flatMap(address => buildDeliveryRoute(address))
       new Delivery(newDelivery)
+    }
+
+    def buildDeliveryRoute(address: String) = {
+      address.map(move => buildMoves(move)) :+(addDeliveryPoint)
+    }
+
+    def buildMoves(move: Char): Try[Moves] = {
+      move match {
+        case 'A' => Success(A())
+        case 'L' => Success(L())
+        case 'R' => Success(R())
+        case _ => Failure(new Exception("Move not valid"))
+      }
+    }
+
+    def addDeliveryPoint: Try[Moves] = {
+      Success(D())
     }
   }
 
