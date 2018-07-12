@@ -26,8 +26,6 @@ class test extends FunSuite {
 
   case class Position(x: Int, y: Int, o: Orientation) extends PositionBuilder
 
-
-
   trait MapBuilder {
     val N: Int
     val E: Int
@@ -160,7 +158,7 @@ class test extends FunSuite {
   }
 
   test("can prepare delivery") {
-    val delivery = List("ALR", "LRf")
+    val delivery = List("ALR", "LRA")
     val newDelivery = DeliveryService.prepareDelivery(delivery)
     assert(0 < newDelivery.route.length)
   }
