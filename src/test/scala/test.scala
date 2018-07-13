@@ -89,9 +89,12 @@ class test extends FunSuite {
   }
 
   object DeliveryService {
-    def prepareDelivery(delivery: List[String]) : Delivery = {
-      val newDelivery = delivery.flatMap(address => buildDeliveryRoute(address))
-      new Delivery(newDelivery)
+    def prepareDelivery(delivery: Try[List[String]], deliveriesNumber: Int) : Delivery = {
+      delivery match {
+        case Success(deliver) => new Delivery(deliver.take(deliveriesNumber)
+          .flatMap(address => buildDeliveryRoute(address)))
+        case Failure(err) => new Delivery(List())
+      }
     }
 
     def buildDeliveryRoute(address: String) = {
@@ -158,7 +161,6 @@ class test extends FunSuite {
     }
 
   }
-
 
   object DroneService {
     def defaultDrone: Drone = {
@@ -240,16 +242,16 @@ class test extends FunSuite {
   }
 
   test("can prepare delivery") {
-    val delivery = List("ALR", "LRA")
-    val newDelivery = DeliveryService.prepareDelivery(delivery)
+    val delivery = Try(List("ALR", "LRA"))
+    val newDelivery = DeliveryService.prepareDelivery(delivery, 3)
     assert(0 < newDelivery.route.length)
   }
 
   test("a dron can make delivers") {
     val file = Try(FileService.read("in.txt"))
-    val delivery = DeliveryService.prepareDelivery(file.getOrElse(List()))
+    val deliveries = DeliveryService.prepareDelivery(file, 3)
     var drone = DroneService.prepareDrone("01")
-    DroneService.makeDeliveries(drone, delivery)
+    DroneService.makeDeliveries(drone, deliveries)
 
   }
 
