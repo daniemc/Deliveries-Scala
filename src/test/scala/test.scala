@@ -134,13 +134,19 @@ class test extends FunSuite {
   }
 
   object PositionService {
-    def move(move: Moves, position: Position): Position = {
-      move match {
-        case A() => advance(position)
-        case L() => OrientationService.lFrom(position)
-        case R() => OrientationService.rFrom(position)
-        case D() => DroneService.delivery(position)
+    def move(move: Moves, position: Try[Position]): Try[Position] = {
+      position match {
+        case Success(pos) => {
+          move match {
+            case A() => Try(advance(pos))
+            case L() => Try(OrientationService.lFrom(pos))
+            case R() => Try(OrientationService.rFrom(pos))
+            case D() => Try(DroneService.delivery(pos))
+          }
+        }
+        case Failure(err) => Failure(new Exception("Position not allowed"))
       }
+
     }
 
     def advance(position: Position) = {
@@ -176,13 +182,17 @@ class test extends FunSuite {
       Try(new Drone(name, input(name), output(name), map, position, delivery))
     }
 
-    def move(movement: Try[Moves], drone: Drone): Try[Drone] = {
+    def move(movement: Try[Moves], drone: Try[Drone]): Try[Drone] = {
 
       movement match {
         case Success(step) => {
-          val newPosition = PositionService.move(step, drone.position)
-          val newDelivery = new Delivery(drone.delivery.route.tail)
-          Try(new Drone(drone.name, drone.input, drone.input, drone.map, newPosition, newDelivery))
+          val newPosition = PositionService.move(step, drone.map(_.position))
+          val newDelivery = new Delivery(drone.get.delivery.route.tail)
+          newPosition match {
+            case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.input, dr.input, dr.map, newPoss, newDelivery))
+            case Failure(err) => Failure(new Exception("Position not allowed"))
+          }
+
         }
         case Failure(err) => Failure(new Exception(err.getMessage))
       }
@@ -239,18 +249,8 @@ class test extends FunSuite {
     val file = Try(FileService.read("in.txt"))
     val delivery = DeliveryService.prepareDelivery(file.getOrElse(List()))
     var drone = DroneService.prepareDrone("01", delivery)
-    // val a = delivery.route.map(action => DroneService.move(action, drone.getOrElse(DroneService.defaultDrone)))
-    delivery.route.foreach(act => {
-      drone = DroneService.move(act, drone.getOrElse(DroneService.defaultDrone))
-    })
-    // DroneService.makeDeliveries(drone)
+    delivery.route.map(action => drone = DroneService.move(action, drone))
   }
 
-  // leer el archivo
-  // linea por linea
-  // recorrer letra por letra
-  // hacer un match
-  // retornar una nueva instancia de moves dependiendo de la letra o un error (usar Try)
-  //
 
 }
