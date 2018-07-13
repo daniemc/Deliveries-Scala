@@ -113,17 +113,89 @@ class test extends FunSuite {
     }
   }
 
+  object OrientationService {
+    def lFrom(position: Position): Position = {
+      position.o match {
+        case N() => new Position(position.x, position.y, E())
+        case E() => new Position(position.x, position.y, S())
+        case S() => new Position(position.x, position.y, O())
+        case O() => new Position(position.x, position.y, N())
+      }
+    }
+
+    def rFrom(position: Position): Position = {
+      position.o match {
+        case N() => new Position(position.x, position.y, O())
+        case O() => new Position(position.x, position.y, S())
+        case S() => new Position(position.x, position.y, E())
+        case E() => new Position(position.x, position.y, N())
+      }
+    }
+  }
+
+  object PositionService {
+    def move(move: Moves, position: Position): Position = {
+      move match {
+        case A() => advance(position)
+        case L() => OrientationService.lFrom(position)
+        case R() => OrientationService.rFrom(position)
+        case D() => DroneService.delivery(position)
+      }
+    }
+
+    def advance(position: Position) = {
+      position.o match {
+        case N() => new Position(position.x, position.y + 1, position.o)
+        case S() => new Position(position.x, position.y - 1, position.o)
+        case O() => new Position(position.x + 1, position.y, position.o)
+        case E() => new Position(position.x - 1, position.y, position.o)
+      }
+    }
+
+  }
+
+
   object DroneService {
-    def input(name: String): String = {
-      s"{$name}in.txt"
-    }
-    def output(name: String): String ={
-      s"{$name}out.txt"
-    }
-    def prepareDrone(name: String, delivery: Delivery) : Drone = {
-      val map = new MapLimits(10, 10, 10, 10)
+    def defaultDrone: Drone = {
+      val map = new MapLimits(0, 0, 0, 0)
       val position = new Position(0, 0, N())
-      new Drone(name, input(name), output(name), map, position, delivery)
+      new Drone("", "", "", map, position, new Delivery(List()))
+    }
+
+    def input(name: String): String = {
+      s"in${name}.txt"
+    }
+
+    def output(name: String): String ={
+      s"out${name}.txt"
+    }
+
+    def prepareDrone(name: String, delivery: Delivery) : Try[Drone] = {
+      val map = new MapLimits(10, 10, -10, -10)
+      val position = new Position(0, 0, N())
+      Try(new Drone(name, input(name), output(name), map, position, delivery))
+    }
+
+    def move(movement: Try[Moves], drone: Drone): Try[Drone] = {
+
+      movement match {
+        case Success(step) => {
+          val newPosition = PositionService.move(step, drone.position)
+          val newDelivery = new Delivery(drone.delivery.route.tail)
+          Try(new Drone(drone.name, drone.input, drone.input, drone.map, newPosition, newDelivery))
+        }
+        case Failure(err) => Failure(new Exception(err.getMessage))
+      }
+    }
+
+    /*def makeDeliveries(drone: Drone) = {
+      drone.delivery.route.map(movement => move(movement, drone))
+    }*/
+
+    def delivery(position: Position): Position = {
+      val message = s"Delivery: (${position.x}, ${position.y} - ${position.o})"
+      FileService.write("out.txt", message)
+      position
     }
   }
 
@@ -161,6 +233,17 @@ class test extends FunSuite {
     val delivery = List("ALR", "LRA")
     val newDelivery = DeliveryService.prepareDelivery(delivery)
     assert(0 < newDelivery.route.length)
+  }
+
+  test("a dron can make delivers") {
+    val file = Try(FileService.read("in.txt"))
+    val delivery = DeliveryService.prepareDelivery(file.getOrElse(List()))
+    var drone = DroneService.prepareDrone("01", delivery)
+    // val a = delivery.route.map(action => DroneService.move(action, drone.getOrElse(DroneService.defaultDrone)))
+    delivery.route.foreach(act => {
+      drone = DroneService.move(act, drone.getOrElse(DroneService.defaultDrone))
+    })
+    // DroneService.makeDeliveries(drone)
   }
 
   // leer el archivo
