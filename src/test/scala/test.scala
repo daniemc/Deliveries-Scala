@@ -40,12 +40,11 @@ class test extends FunSuite {
     val name: String
     val input: String
     val output: String
-    val map: MapLimits
     val position: Position
   }
 
   case class Drone(name: String, input: String, output: String,
-                           map: MapLimits, position: Position) extends DroneBuilder
+                           position: Position) extends DroneBuilder
 
   object FileService {
     val rootPath = System.getProperty("user.dir")
@@ -164,9 +163,8 @@ class test extends FunSuite {
 
   object DroneService {
     def defaultDrone: Drone = {
-      val map = new MapLimits(0, 0, 0, 0)
       val position = new Position(0, 0, N())
-      new Drone("", "", "", map, position)
+      new Drone("", "", "", position)
     }
 
     def input(name: String): String = {
@@ -180,7 +178,7 @@ class test extends FunSuite {
     def prepareDrone(name: String) : Try[Drone] = {
       val map = new MapLimits(10, 10, -10, -10)
       val position = new Position(0, 0, N())
-      Try(new Drone(name, input(name), output(name), map, position))
+      Try(new Drone(name, input(name), output(name), position))
     }
 
     def move(movement: Try[Moves], drone: Try[Drone]): Try[Drone] = {
@@ -190,7 +188,7 @@ class test extends FunSuite {
           val newPosition = PositionService.move(step, drone.map(_.position))
 
           newPosition match {
-            case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.input, dr.input, dr.map, newPoss))
+            case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.input, dr.input, newPoss))
             case Failure(err) => Failure(new Exception("Position not allowed"))
           }
 
@@ -254,6 +252,13 @@ class test extends FunSuite {
     DroneService.makeDeliveries(drone, deliveries)
 
   }
+
+  // TODO
+  // pass cityMap to make delivers
+  // make a mapService
+  // validate position in the map service
+  // validation return a try of position
+  // refactor other functions to accept that return type
 
 
 }
