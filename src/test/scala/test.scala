@@ -135,11 +135,11 @@ class test extends FunSuite {
   }
 
   object PositionService {
-    def move(move: Moves, position: Try[Position]): Try[Position] = {
+    def move(move: Moves, position: Try[Position], cityMap: MapLimits): Try[Position] = {
       position match {
         case Success(pos) => {
           move match {
-            case A() => Try(advance(pos))
+            case A() => advance(pos, cityMap)
             case L() => Try(OrientationService.lFrom(pos))
             case R() => Try(OrientationService.rFrom(pos))
             case D() => Try(DroneService.delivery(pos))
@@ -150,13 +150,28 @@ class test extends FunSuite {
 
     }
 
-    def advance(position: Position) = {
+    def advance(position: Position, cityMap: MapLimits): Try[Position] = {
       position.o match {
-        case N() => new Position(position.x, position.y + 1, position.o)
-        case S() => new Position(position.x, position.y - 1, position.o)
-        case O() => new Position(position.x + 1, position.y, position.o)
-        case E() => new Position(position.x - 1, position.y, position.o)
+        case N() => MapLimitsService.validateNS(new Position(position.x, position.y + 1, position.o), cityMap)
+        case S() => MapLimitsService.validateNS(new Position(position.x, position.y - 1, position.o), cityMap)
+        case O() => MapLimitsService.validateEO(new Position(position.x + 1, position.y, position.o), cityMap)
+        case E() => MapLimitsService.validateEO(new Position(position.x - 1, position.y, position.o), cityMap)
       }
+    }
+
+  }
+
+  object MapLimitsService {
+    def validateNS(position: Position, cityMap: MapLimits): Try[Position] = {
+      if (position.y >= cityMap.S && position.y <= cityMap.N) Success(position) else mapException
+    }
+
+    def validateEO(position: Position, cityMap: MapLimits): Try[Position] = {
+      if (position.x >= cityMap.O && position.x <= cityMap.E) Success(position) else mapException
+    }
+
+    def mapException: Try[Position] = {
+      Failure(new Exception("To go beyond city map limits is not allowed"))
     }
 
   }
@@ -176,16 +191,15 @@ class test extends FunSuite {
     }
 
     def prepareDrone(name: String) : Try[Drone] = {
-      val map = new MapLimits(10, 10, -10, -10)
       val position = new Position(0, 0, N())
       Try(new Drone(name, input(name), output(name), position))
     }
 
-    def move(movement: Try[Moves], drone: Try[Drone]): Try[Drone] = {
+    def move(movement: Try[Moves], drone: Try[Drone], cityMap: MapLimits): Try[Drone] = {
 
       movement match {
         case Success(step) => {
-          val newPosition = PositionService.move(step, drone.map(_.position))
+          val newPosition = PositionService.move(step, drone.map(_.position), cityMap)
 
           newPosition match {
             case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.input, dr.input, newPoss))
@@ -193,13 +207,17 @@ class test extends FunSuite {
           }
 
         }
-        case Failure(err) => Failure(new Exception(err.getMessage))
+        case Failure(err) => {
+          // TODO
+          // report error and return default drone
+          Failure(new Exception(err.getMessage))
+        }
       }
     }
 
-    def makeDeliveries(drone: Try[Drone], delivery: Delivery) = {
+    def makeDeliveries(drone: Try[Drone], delivery: Delivery, cityMap: MapLimits) = {
       var deliveryDrone = drone
-      delivery.route.map(action => deliveryDrone = DroneService.move(action, deliveryDrone))
+      delivery.route.map(action => deliveryDrone = DroneService.move(action, deliveryDrone, cityMap))
     }
 
     def delivery(position: Position): Position = {
@@ -247,18 +265,11 @@ class test extends FunSuite {
 
   test("a dron can make delivers") {
     val file = Try(FileService.read("in.txt"))
+    val mapLimit = new MapLimits(10, 10, -10, -10)
     val deliveries = DeliveryService.prepareDelivery(file, 3)
-    var drone = DroneService.prepareDrone("01")
-    DroneService.makeDeliveries(drone, deliveries)
+    val drone = DroneService.prepareDrone("01")
+    DroneService.makeDeliveries(drone, deliveries, mapLimit)
 
   }
-
-  // TODO
-  // pass cityMap to make delivers
-  // make a mapService
-  // validate position in the map service
-  // validation return a try of position
-  // refactor other functions to accept that return type
-
 
 }
