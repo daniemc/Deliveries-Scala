@@ -37,11 +37,7 @@ class test extends FunSuite {
     files.map(fileList => assert(0 < fileList.length))
   }
 
-  test("can prepare delivery") {
-    val delivery = Try(List("ALR", "LRA"))
-    val deliveries = DeliveryService.prepareDelivery(delivery, 3)
-    assert(0 < deliveries.route.length)
-  }
+
 
   test("dron can make delivers") {
     val delivery = Try(List("ALR", "LRA"))
