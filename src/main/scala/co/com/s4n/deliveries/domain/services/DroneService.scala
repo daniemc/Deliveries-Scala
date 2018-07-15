@@ -29,7 +29,7 @@ object DroneService {
 
     movement match {
       case Success(step) => {
-        val newPosition = PositionService.move(step, drone.map(_.position), cityMap)
+        val newPosition = PositionService.reposition(step, drone.map(_.position), cityMap)
 
         newPosition match {
           case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.input, dr.input, newPoss))
