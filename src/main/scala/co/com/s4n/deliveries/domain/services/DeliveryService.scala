@@ -6,29 +6,37 @@ import co.com.s4n.deliveries.infrastructure.FileAccess
 
 import scala.util.{Failure, Success, Try}
 
-object DeliveryService {
+sealed trait DeliveryAlgebra {
+  def getDelivery(deliveryFileName: String): Delivery
+  def prepareDelivery(delivery: Try[List[String]], deliveriesNumber: Int) : Delivery
+  def buildDeliveryRoute(address: String): Seq[Try[Move]]
+  def buildMoves(move: Char): Try[Move]
+  def addDeliveryPoint: Try[Move]
+}
 
-  def getDelivery(deliveryFileName: String): Delivery = {
+sealed trait DeliveryInterpreter extends DeliveryAlgebra {
+  override def getDelivery(deliveryFileName: String): Delivery = {
     val deliveryFileContent = Try(FileAccess.read(deliveryFileName))
     DeliveryService.prepareDelivery(deliveryFileContent, 10)
   }
 
-  def prepareDelivery(delivery: Try[List[String]], deliveriesNumber: Int) : Delivery = delivery match {
+  override def prepareDelivery(delivery: Try[List[String]], deliveriesNumber: Int) : Delivery = delivery match {
     case Success(deliver) => new Delivery(deliver.take(deliveriesNumber)
       .flatMap(address => buildDeliveryRoute(address)))
     case Failure(err) => new Delivery(List())
   }
 
-  def buildDeliveryRoute(address: String) = address
+  override def buildDeliveryRoute(address: String) = address
     .map(move => buildMoves(move)) :+(addDeliveryPoint)
 
-  def buildMoves(move: Char): Try[Move] = move match {
+  override def buildMoves(move: Char): Try[Move] = move match {
     case 'A' => Success(A())
     case 'L' => Success(L())
     case 'R' => Success(R())
     case _ => Failure(new Exception(s"Move($move) not valid"))
   }
 
-  def addDeliveryPoint: Try[Move] = Success(D())
-
+  override def addDeliveryPoint: Try[Move] = Success(D())
 }
+
+object DeliveryService extends DeliveryInterpreter
