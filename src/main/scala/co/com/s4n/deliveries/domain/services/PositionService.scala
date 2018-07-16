@@ -15,7 +15,7 @@ object PositionService {
       case A() => advance(position.get, cityMap)
       case L() => Try(OrientationService.lFrom(position.get))
       case R() => Try(OrientationService.rFrom(position.get))
-      case D() => Try(DroneService.delivery(position.get, name))
+      case D() => Try(DroneService.deliverOrder(position.get, name))
     }
   }
 
