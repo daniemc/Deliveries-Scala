@@ -39,6 +39,7 @@ object FileAccess {
       .filter(file => file.isFile)
       .map(file => file.getName)
       .filter(file => file.startsWith("in") && file.endsWith("txt"))
+      .filter(file => file.length == 8)
       .toList
   }
 }
