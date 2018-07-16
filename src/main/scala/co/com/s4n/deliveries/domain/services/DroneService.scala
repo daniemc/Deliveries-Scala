@@ -46,8 +46,9 @@ object DroneService {
   }
 
   def makeDeliveries(drone: Try[Drone], delivery: Delivery, cityMap: MapLimits) = {
-    var deliveryDrone = drone
-    delivery.route.map(action => deliveryDrone = DroneService.move(action, deliveryDrone, cityMap))
+    delivery.route.foldLeft(drone) {(deliveryDrone, action) => {
+      DroneService.move(action, deliveryDrone, cityMap)
+    }}
   }
 
   def delivery(position: Position, name: String): Position = {
