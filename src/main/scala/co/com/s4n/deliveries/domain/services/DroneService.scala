@@ -11,11 +11,7 @@ import scala.util.{Failure, Success, Try}
 
 object DroneService {
   def defaultDrone: Drone = {
-    new Drone("", "", "", PositionService.defaultPosition)
-  }
-
-  def input(name: String): String = {
-    s"in${name}.txt"
+    new Drone("", "", PositionService.defaultPosition)
   }
 
   def output(name: String): String ={
@@ -23,21 +19,27 @@ object DroneService {
   }
 
   def prepareDrone(name: String) : Try[Drone] = {
-    Try(new Drone(name, input(name), output(name), PositionService.defaultPosition))
+    Try(new Drone(name, output(name), PositionService.defaultPosition))
   }
 
   def move(movement: Try[Moves], drone: Try[Drone], cityMap: MapLimits): Try[Drone] = {
     movement match {
-      case Success(step) => {
-        val newPosition = PositionService.reposition(step, drone.map(_.position), cityMap, drone.get.output)
-        newPosition match {
-          case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.input, dr.output, newPoss))
-          case Failure(err) => {
-            reportError(drone.get.name, err.getMessage)
-            Failure(new Exception(err.getMessage))
-          }
-        }
+      case Success(step) => goToNewPosition(step, drone, cityMap)
+      case Failure(err) => {
+        reportError(drone.get.name, err.getMessage)
+        Failure(new Exception(err.getMessage))
       }
+    }
+  }
+
+  def goToNewPosition(step: Moves, drone: Try[Drone], cityMap: MapLimits) = {
+
+    PositionService.reposition(
+      step,
+      drone.map(_.position),
+      cityMap,
+      drone.get.output) match {
+      case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.output, newPoss))
       case Failure(err) => {
         reportError(drone.get.name, err.getMessage)
         Failure(new Exception(err.getMessage))
@@ -51,7 +53,7 @@ object DroneService {
     }}
   }
 
-  def delivery(position: Position, name: String): Position = {
+  def deliverOrder(position: Position, name: String): Position = {
     val message = s"Delivery: (${position.x}, ${position.y} - ${position.o})"
     FileAccess.write(name, message)
     position
