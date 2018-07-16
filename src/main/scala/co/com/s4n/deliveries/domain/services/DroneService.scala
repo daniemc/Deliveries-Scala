@@ -39,12 +39,12 @@ object DroneService {
       drone.map(_.position),
       cityMap,
       drone.get.output) match {
-      case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.output, newPoss))
-      case Failure(err) => {
-        reportError(drone.get.name, err.getMessage)
-        Failure(new Exception(err.getMessage))
+        case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.output, newPoss))
+        case Failure(err) => {
+          reportError(drone.get.name, err.getMessage)
+          Failure(new Exception(err.getMessage))
+        }
       }
-    }
   }
 
   def makeDeliveries(drone: Try[Drone], delivery: Delivery, cityMap: MapLimits) = {
