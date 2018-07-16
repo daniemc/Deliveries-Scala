@@ -6,12 +6,12 @@ import co.com.s4n.deliveries.domain.entities.{MapLimits, Position}
 import scala.util.Try
 
 object PositionService {
-  def reposition(move: Moves, position: Try[Position], cityMap: MapLimits): Try[Position] = {
+  def reposition(move: Moves, position: Try[Position], cityMap: MapLimits, name: String): Try[Position] = {
     move match {
       case A() => advance(position.get, cityMap)
       case L() => Try(OrientationService.lFrom(position.get))
       case R() => Try(OrientationService.rFrom(position.get))
-      case D() => Try(DroneService.delivery(position.get))
+      case D() => Try(DroneService.delivery(position.get, name))
     }
   }
 
