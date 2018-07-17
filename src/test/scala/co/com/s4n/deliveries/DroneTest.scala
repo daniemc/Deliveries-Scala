@@ -46,7 +46,6 @@ class DroneTest extends FunSuite {
     val deliveries = DeliveryService.prepareDelivery(delivery, 3)
     val drone = DroneService.prepareDrone("31")
     val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
-    println(deliveriesResult)
     assert(deliveriesResult.isFailure)
   }
 
