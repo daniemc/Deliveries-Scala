@@ -31,7 +31,7 @@ class DroneTest extends FunSuite {
     val delivery = Try(List("ALR", "LRA"))
     val deliveries = DeliveryService.prepareDelivery(delivery, 3)
     val drone = DroneService.prepareDrone("30")
-    val deliveriesResult =  Try(DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap))
+    val deliveriesResult =  DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
     assert(deliveriesResult.isSuccess)
   }
 
@@ -45,7 +45,8 @@ class DroneTest extends FunSuite {
     val delivery = Try(List("AALR", "LRAB"))
     val deliveries = DeliveryService.prepareDelivery(delivery, 3)
     val drone = DroneService.prepareDrone("31")
-    val deliveriesResult = Try(DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap))
+    val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
+    println(deliveriesResult)
     assert(deliveriesResult.isFailure)
   }
 
@@ -53,7 +54,7 @@ class DroneTest extends FunSuite {
     val delivery = Try(List("ALR", "LAAAAAAAAAAAARA"))
     val deliveries = DeliveryService.prepareDelivery(delivery, 3)
     val drone = DroneService.prepareDrone("32")
-    val deliveriesResult = Try(DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap))
+    val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
     assert(deliveriesResult.isFailure)
   }
 
@@ -61,7 +62,7 @@ class DroneTest extends FunSuite {
     val file = Try(FileAccess.read("in.txt"))
     val deliveries = DeliveryService.prepareDelivery(file, 3)
     val drone = DroneService.prepareDrone("33")
-    val deliveriesResult = Try(DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap))
+    val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
     assert(deliveriesResult.isSuccess)
 
   }

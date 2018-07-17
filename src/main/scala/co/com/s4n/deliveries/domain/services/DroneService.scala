@@ -52,11 +52,12 @@ sealed trait DroneIntepretation extends DroneAlgebra {
   }
 
   override def makeDeliveries(initDrone: Try[Drone], delivery: Delivery, cityMap: MapLimits): Try[Drone] = {
-    delivery.route.foldLeft(initDrone) { (deliveryDrone, action) => {
+    delivery.route.foldLeft(initDrone) { (deliveryDrone, action) =>
       deliveryDrone match {
         case Success(delDrone) => DroneService.move(action, delDrone, cityMap)
+        case Failure(err) => Failure(new Exception(s"Drone Error: ${ err.getMessage }"))
       }
-    }}
+    }
   }
 
   override def deliverOrder(position: Position, name: String): Position = {
