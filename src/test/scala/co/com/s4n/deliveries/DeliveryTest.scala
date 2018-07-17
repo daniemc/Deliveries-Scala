@@ -27,6 +27,7 @@ class DeliveryTest extends FunSuite {
     val deliveryRoute = DeliveryService.buildDeliveryRoute(address)
 
     assert(6 == deliveryRoute.length)
+    assert(List(A(), A(), L(), A(), R(), D()) == deliveryRoute)
   }
 
   test("the last position of delivery route must be type Success(D) (Delivery)") {

@@ -1,6 +1,6 @@
 package co.com.s4n.deliveries
 import co.com.s4n.deliveries.domain.VO.N
-import co.com.s4n.deliveries.domain.entities.{MapLimits, Position}
+import co.com.s4n.deliveries.domain.entities.{Delivery, Drone, MapLimits, Position}
 import co.com.s4n.deliveries.domain.services.{DeliveryService, DroneService, MapLimitsService}
 import co.com.s4n.deliveries.infrastructure.FileAccess
 import org.scalatest._
@@ -58,10 +58,10 @@ class DroneTest extends FunSuite {
   }
 
   test("a dron can make delivers from file") {
-    val file = Try(FileAccess.read("in.txt"))
-    val deliveries = DeliveryService.prepareDelivery(file, 3)
-    val drone = DroneService.prepareDrone("33")
-    val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
+    val file: Try[List[String]] = Try(FileAccess.read("in.txt"))
+    val deliveries: Delivery = DeliveryService.prepareDelivery(file, 3)
+    val drone: Try[Drone] = DroneService.prepareDrone("33")
+    val deliveriesResult: Try[Drone] = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
     assert(deliveriesResult.isSuccess)
 
   }
