@@ -7,18 +7,18 @@ import scala.util.Try
 
 sealed trait PositionAlgebra {
   def defaultPosition: Position
-  def reposition(move: Move, position: Try[Position], cityMap: MapLimits, name: String): Try[Position]
+  def reposition(move: Move, position: Position, cityMap: MapLimits, name: String): Try[Position]
   def advance(position: Position, cityMap: MapLimits): Try[Position]
 }
 
 sealed trait PositionInterpretation extends PositionAlgebra {
   override def defaultPosition: Position = new Position(0, 0, N())
 
-  override def reposition(move: Move, position: Try[Position], cityMap: MapLimits, name: String): Try[Position] = move match {
-    case A() => advance(position.get, cityMap)
-    case L() => Try(OrientationService.lFrom(position.get))
-    case R() => Try(OrientationService.rFrom(position.get))
-    case D() => Try(DroneService.deliverOrder(position.get, name))
+  override def reposition(move: Move, position: Position, cityMap: MapLimits, name: String): Try[Position] = move match {
+    case A() => advance(position, cityMap)
+    case L() => Try(OrientationService.lFrom(position))
+    case R() => Try(OrientationService.rFrom(position))
+    case D() => Try(DroneService.deliverOrder(position, name))
   }
 
   override def advance(position: Position, cityMap: MapLimits): Try[Position] = position.o match {

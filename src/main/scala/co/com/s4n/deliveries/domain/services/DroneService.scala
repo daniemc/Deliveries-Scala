@@ -13,8 +13,8 @@ sealed trait DroneAlgebra {
   def defaultDrone: Drone
   def output(name: String): String
   def prepareDrone(name: String): Try[Drone]
-  def move(movement: Try[Move], drone: Try[Drone], cityMap: MapLimits): Try[Drone]
-  def goToNewPosition(step: Move, drone: Try[Drone], cityMap: MapLimits): Try[Drone]
+  def move(movement: Try[Move], drone: Drone, cityMap: MapLimits): Try[Drone]
+  def goToNewPosition(step: Move, drone: Drone, cityMap: MapLimits): Try[Drone]
   def makeDeliveries(drone: Try[Drone], delivery: Delivery, cityMap: MapLimits): Try[Drone]
   def deliverOrder(position: Position, name: String): Position
   def multiDroneDelivery(deliveriesList: List[String]): List[Future[Try[Drone]]]
@@ -29,31 +29,33 @@ sealed trait DroneIntepretation extends DroneAlgebra {
 
   override def prepareDrone(name: String) : Try[Drone] = Try(new Drone(name, output(name), PositionService.defaultPosition))
 
-  override def move(movement: Try[Move], drone: Try[Drone], cityMap: MapLimits): Try[Drone] = movement match {
+  override def move(movement: Try[Move], drone: Drone, cityMap: MapLimits): Try[Drone] = movement match {
     case Success(step) => goToNewPosition(step, drone, cityMap)
     case Failure(err) => {
-      reportError(drone.get.name, err.getMessage)
+      reportError(drone.name, err.getMessage)
       Failure(new Exception(err.getMessage))
     }
   }
 
-  override def goToNewPosition(step: Move, drone: Try[Drone], cityMap: MapLimits) = {
+  override def goToNewPosition(step: Move, drone: Drone, cityMap: MapLimits): Try[Drone] = {
     PositionService.reposition(
       step,
-      drone.map(_.position),
+      drone.position,
       cityMap,
-      drone.get.output) match {
-      case Success(newPoss) => drone.map(dr => new Drone(dr.name, dr.output, newPoss))
+      drone.output) match {
+      case Success(newPoss) => Try(new Drone(drone.name, drone.output, newPoss))
       case Failure(err) => {
-        reportError(drone.get.name, err.getMessage)
+        reportError(drone.name, err.getMessage)
         Failure(new Exception(err.getMessage))
       }
     }
   }
 
-  override def makeDeliveries(drone: Try[Drone], delivery: Delivery, cityMap: MapLimits) = {
-    delivery.route.foldLeft(drone) {(deliveryDrone, action) => {
-      DroneService.move(action, deliveryDrone, cityMap)
+  override def makeDeliveries(initDrone: Try[Drone], delivery: Delivery, cityMap: MapLimits): Try[Drone] = {
+    delivery.route.foldLeft(initDrone) { (deliveryDrone, action) => {
+      deliveryDrone match {
+        case Success(delDrone) => DroneService.move(action, delDrone, cityMap)
+      }
     }}
   }
 
