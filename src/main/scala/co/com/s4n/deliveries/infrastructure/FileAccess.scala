@@ -42,4 +42,12 @@ object FileAccess {
       .filter(file => file.length == 8)
       .toList
   }
+
+  // TODO:
+  // file.read
+  //  .map(listDeliveries: List[String] => listDeliveries
+  //    .map(lineDeliver => getAddress(lineDeliver))
+  //      .map(addressList => Delivery(addressList))
+  //
+  // Quitar throws
 }
