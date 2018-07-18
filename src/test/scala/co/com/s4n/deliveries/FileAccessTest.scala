@@ -26,7 +26,7 @@ class FileAccessTest extends FunSuite {
   }
 
   test("can list files in a directory") {
-    val files = FileAccess.list(FileAccess.fullPath)
+    val files = FileAccess.list(Config.fullPath)
     assert(files.isSuccess)
     files.map(fileList => assert(0 < fileList.length))
   }

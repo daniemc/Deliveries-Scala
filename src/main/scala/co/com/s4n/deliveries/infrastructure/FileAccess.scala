@@ -2,26 +2,21 @@ package co.com.s4n.deliveries.infrastructure
 
 import java.io.{BufferedWriter, File, FileWriter}
 
+import co.com.s4n.deliveries.Config
 import co.com.s4n.deliveries.domain.VO.{A, L, Move, R}
 import co.com.s4n.deliveries.domain.entities.{Address, Delivery, Drone}
 
 import scala.util.{Failure, Success, Try}
 
 object FileAccess {
-  val rootPath = System.getProperty("user.dir")
-  val basePath = "src/main/resources"
-  def fullPath = {
-    s"${ rootPath }/${ basePath }"
-  }
-
 
   def read(fileName: String): Try[List[String]] = {
-    Try(scala.io.Source.fromFile(s"$fullPath/$fileName").getLines().toList)
+    Try(scala.io.Source.fromFile(s"${Config.fullPath}/$fileName").getLines().toList)
   }
 
   def write(fileName: String, message: String) = {
       Try {
-        val path = s"${fullPath}/$fileName"
+        val path = s"${Config.fullPath}/$fileName"
         val writer = new BufferedWriter(new FileWriter(path, true))
         writer.write(message)
         writer.newLine()

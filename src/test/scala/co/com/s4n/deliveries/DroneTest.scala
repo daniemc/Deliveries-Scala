@@ -84,7 +84,7 @@ class DroneTest extends FunSuite {
   }
 
   test("a dron can make multi deliveries from files") {
-    val deliveriesList = FileAccess.list(FileAccess.fullPath)
+    val deliveriesList = FileAccess.list(Config.fullPath)
     val deliveriesResult = deliveriesList.map(deliveries => DroneService.multiDroneDelivery(deliveries))
 
     assert(deliveriesList.isSuccess)
