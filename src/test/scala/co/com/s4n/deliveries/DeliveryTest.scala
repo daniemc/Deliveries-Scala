@@ -1,56 +1,93 @@
 package co.com.s4n.deliveries
 
-import co.com.s4n.deliveries.domain.VO.{A, D, L, R}
-import co.com.s4n.deliveries.domain.services.DeliveryService
+import co.com.s4n.deliveries.domain.VO.{A, L, R}
+import co.com.s4n.deliveries.domain.entities.{Address, Delivery}
+import co.com.s4n.deliveries.infrastructure.FileAccess
 import org.scalatest._
 
 import scala.util.{Success, Try}
 
 class DeliveryTest extends FunSuite {
-
   test("can build success moves") {
-    val moveA = DeliveryService.buildMoves('A')
-    val moveR = DeliveryService.buildMoves('R')
-    val moveL = DeliveryService.buildMoves('L')
+    val moveA = FileAccess.buildMoves('A')
+    val moveR = FileAccess.buildMoves('R')
+    val moveL = FileAccess.buildMoves('L')
     assert(Success(A()) == moveA)
     assert(Success(R()) == moveR)
     assert(Success(L()) == moveL)
   }
 
   test("if an invalid move is given must return failed move") {
-    val invalidMove = DeliveryService.buildMoves('f')
+    val invalidMove = FileAccess.buildMoves('f')
     assert(invalidMove.isFailure)
   }
 
-  test("can build delivery route") {
+  test("can build move list") {
     val address = "AALAR"
-    val deliveryRoute = DeliveryService.buildDeliveryRoute(address)
+    val deliveryRoute = FileAccess.getMoveList(address)
 
-    assert(6 == deliveryRoute.length)
-    assert(List(A(), A(), L(), A(), R(), D()) == deliveryRoute)
+    assert(deliveryRoute.isSuccess)
+    deliveryRoute.map(route => {
+      assert(route.length > 0)
+      assert(List(A(), A(), L(), A(), R()) == route)
+    })
   }
 
-  test("the last position of delivery route must be type Success(D) (Delivery)") {
-    val address = "AALAR"
-    val deliveryRoute = DeliveryService.buildDeliveryRoute(address)
-    assert(Success(D()) == deliveryRoute.last)
+  test("can't build move list with bad moves") {
+    val address = "AAoAR"
+    val deliveryRoute = FileAccess.getMoveList(address)
+    assert(deliveryRoute.isFailure)
   }
 
-  test("if bad instruction is given, the route returns that position in failure") {
-    val address = "AgL"
-    val deliveryRoute = DeliveryService.buildDeliveryRoute(address)
-    assert(deliveryRoute(1).isFailure)
+  test("can build an Address list") {
+    val stringList = List("AALA", "RAA", "RALA")
+    val address = FileAccess.getAddressList(stringList)
+
+    assert(address.isSuccess)
+    address.map(add => {
+      assert(add.length > 0)
+      assert(
+        List(
+          Address(List(A(), A(), L(), A())),
+          Address(List(R(), A(), A())),
+          Address(List(R(), A(), L(), A()))
+        )
+        == add
+      )
+    })
   }
 
-  test("can add delivery point D") {
-    val deliveryPoint = DeliveryService.addDeliveryPoint
-    assert(Success(D()) == deliveryPoint)
+  test("can't build an Address list with bad moves") {
+    val stringList = List("AALA", "RoA", "RALA")
+    val address = FileAccess.getAddressList(stringList)
+    assert(address.isFailure)
   }
 
-  test("can prepare delivery") {
-    val delivery = Try(List("ALR", "LRA"))
-    val deliveries = DeliveryService.prepareDelivery(delivery, 3)
-    assert(0 < deliveries.route.length)
+  test("can get a delivery from a file") {
+    val fileName = "in.txt"
+    val delivery = FileAccess.getDelivery(fileName)
+    assert(delivery.isSuccess)
+    delivery.map(del => {
+      assert(
+        Delivery(
+          List(
+            Address(List(A(), A(), A(), A(), L(), A(), A(), R())),
+            Address(List(R(), R(), A(), L(), A(), R())),
+            Address(List(A(), A(), L(), A(), R(), A(), R())),
+            Address(List(A(), A(), A(), A(), L(), A(), A(), R())),
+            Address(List(R(), R(), A(), L(), A(), R())),
+            Address(List(A(), A(), L(), A(), R(), A(), R())))
+        ) == del
+      )
+    })
   }
+
+  test("can't get a delivery from a file with a bad move inside") {
+    val fileName = "bad.txt"
+    val delivery = FileAccess.getDelivery(fileName)
+    assert(delivery.isFailure)
+  }
+
+
 
 }
