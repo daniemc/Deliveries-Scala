@@ -1,72 +1,89 @@
 package co.com.s4n.deliveries
-import co.com.s4n.deliveries.domain.VO.N
-import co.com.s4n.deliveries.domain.entities.{Delivery, Drone, MapLimits, Position}
+import co.com.s4n.deliveries.domain.VO._
+import co.com.s4n.deliveries.domain.entities._
 import co.com.s4n.deliveries.domain.services.{DroneService, MapLimitsService}
 import co.com.s4n.deliveries.infrastructure.FileAccess
 import org.scalatest._
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 class DroneTest extends FunSuite {
-
-  test("an input and output file name must") {
-    val fileName = DroneService.output("01")
-    assert("out01.txt" == fileName)
-  }
 
   test("a dron can be prepared") {
     val preparedDrone = DroneService.prepareDrone("01")
     assert(preparedDrone.isSuccess)
   }
 
-  /*test("a dron can deliver an order at a given position") {
-    val position = new Position(2, 4, N())
-    val droneName = "outTest.txt"
-    val deliver = DroneService.deliverOrder(position, droneName)
-    val file = FileAccess.read(droneName)
-    assert("Delivery: (2, 4 - N())" == file.get(0))
-  }*/
+  test("a dron can make deliveries") {
+    val deliveriesList = new Delivery(
+      List(
+        Address(List(A(), L(), A())),
+        Address(List(A(), R(), A())),
+        Address(List(A(), A()))
+      )
+    )
+    val preparedDelivery = Try(deliveriesList)
+    val initDrone = DroneService.prepareDrone("33")
+    val result = initDrone
+      .flatMap(drone => preparedDelivery
+        .flatMap(delivery => DroneService
+          .makeDeliveries(drone, delivery, MapLimitsService.defaultMap)))
 
-  /*test("dron can make delivers") {
-    val delivery = Try(List("ALR", "LRA"))
-    val deliveries = DeliveryService.prepareDelivery(delivery, 3)
-    val drone = DroneService.prepareDrone("30")
-    val deliveriesResult =  DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
-    assert(deliveriesResult.isSuccess)
+    assert(result.isSuccess)
+
+    var resultName = ""
+    var xPosition = 0
+    var yPosition = 0
+    var oPosition: Orientation = S()
+    result.map {r =>
+      resultName = r.name
+      xPosition = r.position.x
+      yPosition = r.position.y
+      oPosition = r.position.o
+    }
+
+    assert("33" == resultName)
+    assert(-2 == xPosition)
+    assert(4 == yPosition)
+    assert(N() == oPosition)
   }
 
-  test("you can get the drone name of input file delivery") {
-    val droneName = "01"
-    val fileName = "in01.txt"
-    assert(droneName == DroneService.getDroneNameFromFile(fileName))
-  }
+  test("a dron can make deliveries from file") {
+    val initDrone = DroneService.prepareDrone("30")
+    val deliveries = FileAccess.getDelivery("in.txt")
+    val result = initDrone
+      .flatMap(drone => deliveries
+        .flatMap(delivery => DroneService
+          .makeDeliveries(drone, delivery, MapLimitsService.defaultMap)))
 
-  test("pass bad moves to drone will fail") {
-    val delivery = Try(List("AALR", "LRAB"))
-    val deliveries = DeliveryService.prepareDelivery(delivery, 3)
-    val drone = DroneService.prepareDrone("31")
-    val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
-    assert(deliveriesResult.isFailure)
-  }
-
-  test("go beyond map limits will fail") {
-    val delivery = Try(List("ALR", "LAAAAAAAAAAAARA"))
-    val deliveries = DeliveryService.prepareDelivery(delivery, 3)
-    val drone = DroneService.prepareDrone("32")
-    val deliveriesResult = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
-    assert(deliveriesResult.isFailure)
-  }
-
-  test("a dron can make delivers from file") {
-    val file: Try[List[String]] = FileAccess.read("in.txt")
-    val deliveries: Delivery = DeliveryService.prepareDelivery(file, 3)
-    val drone: Try[Drone] = DroneService.prepareDrone("33")
-    val deliveriesResult: Try[Drone] = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
-    assert(deliveriesResult.isSuccess)
+    assert(result.isSuccess)
 
   }
 
-  test("a dron can make multi deliveries from files") {
+  test("a dron can't make deliveries from a file with a bad move inside") {
+    val initDrone = DroneService.prepareDrone("31")
+    val deliveries = FileAccess.getDelivery("bad.txt")
+    val result = initDrone
+      .flatMap(drone => deliveries
+        .flatMap(delivery => DroneService
+          .makeDeliveries(drone, delivery, MapLimitsService.defaultMap)))
+
+    assert(result.isFailure)
+
+  }
+
+  test("a dron can't go beyond map limits") {
+    val deliveries = Try(new Delivery(List(Address(List(A(), A(), A(), A(), A(), A(), A(), A(), A(), A(), A(), A())))))
+    val initDrone = DroneService.prepareDrone("33")
+    val result = initDrone
+      .flatMap(drone => deliveries
+        .flatMap(delivery => DroneService
+          .makeDeliveries(drone, delivery, MapLimitsService.defaultMap)))
+
+    assert(result.isFailure)
+  }
+
+  /*test("a dron can make multi deliveries from files") {
     val deliveriesList = FileAccess.list(FileAccess.fullPath)
     val deliveriesResult = DroneService.multiDroneDelivery(deliveriesList.get)
     assert(0 < deliveriesResult.length)
