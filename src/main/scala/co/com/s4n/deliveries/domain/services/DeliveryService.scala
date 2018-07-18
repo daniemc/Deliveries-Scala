@@ -17,7 +17,7 @@ sealed trait DeliveryAlgebra {
 sealed trait DeliveryInterpreter extends DeliveryAlgebra {
   override def getDelivery(deliveryFileName: String): Delivery = {
     val deliveryFileContent = Try(FileAccess.read(deliveryFileName))
-    DeliveryService.prepareDelivery(deliveryFileContent, 10)
+    DeliveryService.prepareDelivery(deliveryFileContent.get, 10)
   }
 
   override def prepareDelivery(delivery: Try[List[String]], deliveriesNumber: Int) : Delivery = delivery match {

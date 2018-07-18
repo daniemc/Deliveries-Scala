@@ -1,6 +1,7 @@
 package co.com.s4n.deliveries.infrastructure
 
 import java.io.{BufferedWriter, File, FileWriter}
+import scala.util.{Failure, Try}
 
 object FileAccess {
   val rootPath = System.getProperty("user.dir")
@@ -9,38 +10,28 @@ object FileAccess {
     s"${ rootPath }/${ basePath }"
   }
 
-  @throws(classOf[Exception])
-  def read(fileName: String): List[String] = {
-    var lines : List[String] = List()
-    val bufferedSource = scala.io.Source.fromFile(s"$fullPath/$fileName")
-    bufferedSource.getLines().foreach(fileLine => {
-      lines = lines :+ fileLine
-    })
-    bufferedSource.close()
-    lines
+
+  def read(fileName: String): Try[List[String]] = {
+    Try(scala.io.Source.fromFile(s"$fullPath/$fileName").getLines().toList)
   }
 
-  @throws(classOf[Exception])
   def write(fileName: String, message: String) = {
-    if (message != "") {
-      val path = s"${fullPath}/$fileName"
-      val writer = new BufferedWriter(new FileWriter(path, true))
-      writer.write(message)
-      writer.newLine()
-      writer.close()
-    } else {
-      throw new Exception("Write failed: A message must be provided")
-    }
+      Try {
+        val path = s"${fullPath}/$fileName"
+        val writer = new BufferedWriter(new FileWriter(path, true))
+        writer.write(message)
+        writer.newLine()
+        writer.close()
+      }
   }
 
-  @throws(classOf[Exception])
-  def list: List[String] = {
-    new File(fullPath).listFiles
+  def list(path: String): Try[List[String]] = {
+    Try( new File(path).listFiles
       .filter(file => file.isFile)
       .map(file => file.getName)
       .filter(file => file.startsWith("in") && file.endsWith("txt"))
       .filter(file => file.length == 8)
-      .toList
+      .toList )
   }
 
   // TODO:

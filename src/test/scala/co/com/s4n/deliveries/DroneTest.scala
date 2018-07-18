@@ -24,7 +24,7 @@ class DroneTest extends FunSuite {
     val droneName = "outTest.txt"
     val deliver = DroneService.deliverOrder(position, droneName)
     val file = FileAccess.read(droneName)
-    assert("Delivery: (2, 4 - N())" == file(0))
+    assert("Delivery: (2, 4 - N())" == file.get(0))
   }
 
   test("dron can make delivers") {
@@ -58,7 +58,7 @@ class DroneTest extends FunSuite {
   }
 
   test("a dron can make delivers from file") {
-    val file: Try[List[String]] = Try(FileAccess.read("in.txt"))
+    val file: Try[List[String]] = FileAccess.read("in.txt")
     val deliveries: Delivery = DeliveryService.prepareDelivery(file, 3)
     val drone: Try[Drone] = DroneService.prepareDrone("33")
     val deliveriesResult: Try[Drone] = DroneService.makeDeliveries(drone, deliveries, MapLimitsService.defaultMap)
@@ -67,8 +67,8 @@ class DroneTest extends FunSuite {
   }
 
   test("a dron can make multi deliveries from files") {
-    val deliveriesList = FileAccess.list
-    val deliveriesResult = DroneService.multiDroneDelivery(deliveriesList)
+    val deliveriesList = FileAccess.list(FileAccess.fullPath)
+    val deliveriesResult = DroneService.multiDroneDelivery(deliveriesList.get)
     assert(0 < deliveriesResult.length)
   }
 }
