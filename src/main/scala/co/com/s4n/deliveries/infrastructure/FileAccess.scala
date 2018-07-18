@@ -3,7 +3,7 @@ package co.com.s4n.deliveries.infrastructure
 import java.io.{BufferedWriter, File, FileWriter}
 
 import co.com.s4n.deliveries.domain.VO.{A, L, Move, R}
-import co.com.s4n.deliveries.domain.entities.{Address, Delivery}
+import co.com.s4n.deliveries.domain.entities.{Address, Delivery, Drone}
 
 import scala.util.{Failure, Success, Try}
 
@@ -65,6 +65,14 @@ object FileAccess {
       case 'R' => R()
       case _ => throw new Exception(s"Move($move) not valid")
     }
+  }
+
+  def droneOutput(name: String): String =s"out${name}.txt"
+
+  def report(drone: Drone): Drone = {
+    val message = s"Delivery: (${drone.position.x}, ${drone.position.y} - ${drone.position.o})"
+    FileAccess.write(droneOutput(drone.name), message)
+    drone
   }
  
 }
