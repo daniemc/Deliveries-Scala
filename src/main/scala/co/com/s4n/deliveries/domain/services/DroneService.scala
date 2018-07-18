@@ -14,7 +14,7 @@ sealed trait DroneAlgebra {
   def prepareDrone(name: String): Try[Drone]
   def deliverOrder(address: List[Move], drone: Drone, cityMap: MapLimits): Try[Drone]
   def makeDeliveries(drone: Drone, delivery: Delivery, cityMap: MapLimits): Try[Drone]
-  // def multiDroneDelivery(deliveriesList: List[String]): List[Future[Try[Drone]]]
+  def multiDroneDelivery(deliveriesList: List[String]): List[Future[Drone]]
   def getDroneNameFromFile(file: String): String
   def reportError(droneName: String, message: String): Unit
 }
@@ -37,17 +37,20 @@ sealed trait DroneIntepretation extends DroneAlgebra {
     }
   }
 
-  /*override def multiDroneDelivery(deliveriesList: List[String]) = {
-    deliveriesList.map { deliveryFileName =>
-      val delivery = DeliveryService.getDelivery(deliveryFileName)
-      val drone = prepareDrone(getDroneNameFromFile(deliveryFileName))
+  override def multiDroneDelivery(deliveriesList: List[String]): List[Future[Drone]] = {
+    val drones = deliveriesList.map { deliveryFileName =>
       val exCont = DeliveriesExecutor.buildExecutor(20)
-      Future {
-        DroneService.makeDeliveries(drone, delivery, MapLimitsService.defaultMap)
-      }{ exCont }
+      val initDrone = DroneService.prepareDrone(getDroneNameFromFile(deliveryFileName))
+      val deliveries = FileAccess.getDelivery(deliveryFileName)
+      val drone = Future { initDrone
+        .flatMap(drone => deliveries
+          .flatMap(delivery => DroneService
+            .makeDeliveries(drone, delivery, MapLimitsService.defaultMap))).get
+        }{ exCont }
+      drone
     }
-  }*/
-
+    drones
+  }
 
   override def getDroneNameFromFile(file: String): String = {
     val partName = file.split(Pattern.quote("."))
