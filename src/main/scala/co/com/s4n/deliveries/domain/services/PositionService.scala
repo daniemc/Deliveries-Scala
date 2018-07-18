@@ -15,9 +15,9 @@ sealed trait PositionInterpretation extends PositionAlgebra {
   override def defaultPosition: Position = new Position(0, 0, N())
 
   override def reposition(move: Move, drone: Drone, cityMap: MapLimits): Try[Drone] = move match {
-    case A() => advance(drone.position, cityMap).map(newPos => new Drone(drone.name, drone.output, newPos))
-    case L() => Try(new Drone(drone.name, drone.output, OrientationService.lFrom(drone.position)))
-    case R() => Try(new Drone(drone.name, drone.output, OrientationService.rFrom(drone.position)))
+    case A() => advance(drone.position, cityMap).map(newPos => new Drone(drone.name, newPos))
+    case L() => Try(new Drone(drone.name, OrientationService.lFrom(drone.position)))
+    case R() => Try(new Drone(drone.name, OrientationService.rFrom(drone.position)))
   }
 
   override def advance(position: Position, cityMap: MapLimits): Try[Position] = position.o match {
