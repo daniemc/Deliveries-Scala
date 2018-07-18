@@ -1,6 +1,6 @@
 package co.com.s4n.deliveries.domain.services
 
-import co.com.s4n.deliveries.domain.VO.{A, D, L, R, N, O, S, E, Move}
+import co.com.s4n.deliveries.domain.VO.{A, L, R, N, O, S, E, Move}
 import co.com.s4n.deliveries.domain.entities.{MapLimits, Position}
 
 import scala.util.Try
@@ -18,7 +18,6 @@ sealed trait PositionInterpretation extends PositionAlgebra {
     case A() => advance(position, cityMap)
     case L() => Try(OrientationService.lFrom(position))
     case R() => Try(OrientationService.rFrom(position))
-    case D() => Try(DroneService.deliverOrder(position, name))
   }
 
   override def advance(position: Position, cityMap: MapLimits): Try[Position] = position.o match {
