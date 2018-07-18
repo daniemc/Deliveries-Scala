@@ -10,28 +10,24 @@ class MapTest extends FunSuite {
 
   test("giving a map limit, it can be validated in y axis (N, S)") {
     val CorrectPosition = new Position(2, 2, N())
-    val validation1 = MapLimitsService.validateNS(CorrectPosition, mapLimitToTest)
+    val validation1 = MapLimitsService.validate(CorrectPosition, mapLimitToTest)
     assert(validation1.isSuccess)
 
     val IncorrectPosition = new Position(2, 7, N())
-    val validation2 = MapLimitsService.validateNS(IncorrectPosition, mapLimitToTest)
+    val validation2 = MapLimitsService.validate(IncorrectPosition, mapLimitToTest)
     assert(validation2.isFailure)
   }
 
   test("giving a map limit, it can be validated in y axis (E, O)") {
     val CorrectPosition = new Position(2, 2, N())
-    val validation1 = MapLimitsService.validateEO(CorrectPosition, mapLimitToTest)
+    val validation1 = MapLimitsService.validate(CorrectPosition, mapLimitToTest)
     assert(validation1.isSuccess)
 
     val IncorrectPosition = new Position(7, 2, N())
-    val validation2 = MapLimitsService.validateEO(IncorrectPosition, mapLimitToTest)
+    val validation2 = MapLimitsService.validate(IncorrectPosition, mapLimitToTest)
     assert(validation2.isFailure)
   }
 
-  test("Map exception can be thrown, with a position") {
-    val IncorrectPosition = new Position(7, 2, N())
-    val ex = MapLimitsService.mapException(IncorrectPosition)
-    assert(ex.isFailure)
-  }
+  
 
 }
