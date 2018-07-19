@@ -50,7 +50,7 @@ class DroneTest extends FunSuite {
 
   test("a dron can make deliveries from file") {
     val initDrone = DroneService.prepareDrone("30")
-    val deliveries = FileAccess.getDelivery("in.txt")
+    val deliveries = FileAccess.getDelivery("in.txt", 3)
     val result = initDrone
       .flatMap(drone => deliveries
         .flatMap(delivery => DroneService
@@ -62,7 +62,7 @@ class DroneTest extends FunSuite {
 
   test("a dron can't make deliveries from a file with a bad move inside") {
     val initDrone = DroneService.prepareDrone("31")
-    val deliveries = FileAccess.getDelivery("bad.txt")
+    val deliveries = FileAccess.getDelivery("bad.txt", 3)
     val result = initDrone
       .flatMap(drone => deliveries
         .flatMap(delivery => DroneService

@@ -33,20 +33,20 @@ object FileAccess {
       .toList )
   }
 
-  def getDelivery(fileName: String): Try[Delivery] = {
+  def getDelivery(fileName: String, ordersNumber: Int): Try[Delivery] = {
     FileAccess.read(fileName)
-      .map(fileList => getAddressList(fileList))
+      .map(fileList => getAddressList(fileList, ordersNumber))
       .flatMap(tAddressList => tAddressList
         .map(new Delivery(_)))
   }
 
-  def getAddressList(fileLines: List[String]): Try[List[Address]] = {
+  def getAddressList(fileLines: List[String], ordersNumber: Int): Try[List[Address]] = {
     Try(fileLines
       .map(addressString => getMoveList(addressString))
       .map(moveList => moveList match {
         case Success(ml) => new Address(ml)
         case Failure(err) => throw new Exception(err.getMessage)
-      }))
+      }).take(ordersNumber))
   }
 
   def getMoveList(moves: String): Try[List[Move]] = {

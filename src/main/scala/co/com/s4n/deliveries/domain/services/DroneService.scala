@@ -41,7 +41,7 @@ sealed trait DroneIntepretation extends DroneAlgebra {
     val drones = deliveriesList.map { deliveryFileName =>
       val exCont = DeliveriesExecutor.buildExecutor(20)
       val initDrone = DroneService.prepareDrone(getDroneNameFromFile(deliveryFileName))
-      val deliveries = FileAccess.getDelivery(deliveryFileName)
+      val deliveries = FileAccess.getDelivery(deliveryFileName, 3)
       val drone = Future { initDrone
         .flatMap(drone => deliveries
           .flatMap(delivery => DroneService

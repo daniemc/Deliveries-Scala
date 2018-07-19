@@ -41,7 +41,7 @@ class DeliveryTest extends FunSuite {
 
   test("can build an Address list") {
     val stringList = List("AALA", "RAA", "RALA")
-    val address = FileAccess.getAddressList(stringList)
+    val address = FileAccess.getAddressList(stringList, 3)
 
     assert(address.isSuccess)
     address.map(add => {
@@ -59,13 +59,13 @@ class DeliveryTest extends FunSuite {
 
   test("can't build an Address list with bad moves") {
     val stringList = List("AALA", "RoA", "RALA")
-    val address = FileAccess.getAddressList(stringList)
+    val address = FileAccess.getAddressList(stringList, 3)
     assert(address.isFailure)
   }
 
   test("can get a delivery from a file") {
     val fileName = "in.txt"
-    val delivery = FileAccess.getDelivery(fileName)
+    val delivery = FileAccess.getDelivery(fileName, 3)
     assert(delivery.isSuccess)
     delivery.map(del => {
       assert(
@@ -84,7 +84,7 @@ class DeliveryTest extends FunSuite {
 
   test("can't get a delivery from a file with a bad move inside") {
     val fileName = "bad.txt"
-    val delivery = FileAccess.getDelivery(fileName)
+    val delivery = FileAccess.getDelivery(fileName, 3)
     assert(delivery.isFailure)
   }
 
