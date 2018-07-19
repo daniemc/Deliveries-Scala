@@ -15,8 +15,7 @@ sealed trait DroneAlgebra {
   def deliverOrder(address: List[Move], drone: Drone, cityMap: MapLimits): Try[Drone]
   def makeDeliveries(drone: Drone, delivery: Delivery, cityMap: MapLimits): Try[Drone]
   def multiDroneDelivery(deliveriesList: List[String]): List[Future[Drone]]
-  def getDroneNameFromFile(file: String): String
-  def reportError(droneName: String, message: String): Unit
+  def getDroneNameFromFile(file: String): Try[String]
 }
 
 sealed trait DroneIntepretation extends DroneAlgebra {
@@ -40,27 +39,29 @@ sealed trait DroneIntepretation extends DroneAlgebra {
   override def multiDroneDelivery(deliveriesList: List[String]): List[Future[Drone]] = {
     val drones = deliveriesList.map { deliveryFileName =>
       val exCont = DeliveriesExecutor.buildExecutor(20)
-      val initDrone = DroneService.prepareDrone(getDroneNameFromFile(deliveryFileName))
       val deliveries = FileAccess.getDelivery(deliveryFileName, 3)
-      val drone = Future { initDrone
-        .flatMap(drone => deliveries
-          .flatMap(delivery => DroneService
-            .makeDeliveries(drone, delivery, MapLimitsService.defaultMap))).get
-        }{ exCont }
-      drone
+      val initDrone = getDroneNameFromFile(deliveryFileName)
+        .map(name => DroneService.prepareDrone(name))
+        .map(drone => Future {
+          drone.flatMap(drone => deliveries
+            .flatMap(delivery => DroneService
+              .makeDeliveries(drone, delivery, MapLimitsService.defaultMap))).get
+        }{ exCont } ).get
+      
+
+      initDrone
     }
     drones
   }
 
-  override def getDroneNameFromFile(file: String): String = {
-    val partName = file.split(Pattern.quote("."))
-    val name = partName(0).substring(2)
-    name
+  override def getDroneNameFromFile(file: String): Try[String] = {
+    Try {
+      val partName = file.split(Pattern.quote("."))
+      val name = partName(0).substring(2)
+      name
+    }
   }
 
-  override def reportError(droneName: String, message: String) = {
-    FileAccess.write("ErrorsReport.txt", s"[Error] Drone ${droneName} says: ${message}")
-  }
 }
 
 object DroneService extends DroneIntepretation

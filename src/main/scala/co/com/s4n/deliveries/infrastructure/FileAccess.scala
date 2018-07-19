@@ -69,5 +69,9 @@ object FileAccess {
     FileAccess.write(droneOutput(drone.name), message)
     drone
   }
+
+  def reportError(droneName: String, message: String) = {
+    FileAccess.write("ErrorsReport.txt", s"[Error] Drone ${droneName} says: ${message}")
+  }
  
 }
