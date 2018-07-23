@@ -47,7 +47,6 @@ sealed trait DroneIntepretation extends DroneAlgebra {
             .flatMap(delivery => DroneService
               .makeDeliveries(drone, delivery, MapLimitsService.defaultMap))).get
         }{ exCont } ).get
-      
 
       initDrone
     }
