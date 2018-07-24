@@ -68,12 +68,6 @@ object FileAccess {
 
   def droneOutput(name: String): String =s"out${name}.txt"
 
-  def report(drone: Drone): Drone = {
-    val message = s"Delivery: (${drone.position.x}, ${drone.position.y} - ${drone.position.o})"
-    FileAccess.write(droneOutput(drone.name), message)
-    drone
-  }
-
   def reportError(droneName: String, message: String) = {
     FileAccess.write("ErrorsReport.txt", s"[Error] Drone ${droneName} says: ${message}")
   }

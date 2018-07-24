@@ -32,7 +32,7 @@ sealed trait DroneIntepretation extends DroneAlgebra {
   override def makeDeliveries(initDrone: Drone, delivery: Delivery, cityMap: MapLimits): Try[Drone] = {
     delivery.route.foldLeft(Try(initDrone)){ (dacc, address) =>
       dacc.flatMap(deliveryDrone => deliverOrder(address.movesToGO, deliveryDrone, cityMap))
-        .map(deliver => FileAccess.report(deliver))
+        .map(deliver => Drone.reportDeliver(deliver))
     }
   }
 
