@@ -3,7 +3,11 @@ import co.com.s4n.deliveries.domain.VO._
 import co.com.s4n.deliveries.domain.entities._
 import co.com.s4n.deliveries.domain.services.{DroneService, MapLimitsService}
 import co.com.s4n.deliveries.infrastructure.{DeliveriesExecutor, FileAccess}
-import org.scalatest._
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import org.scalatest.{time, _}
+import scala.concurrent.duration._
 
 import scala.util.{Success, Try}
 
@@ -90,6 +94,22 @@ class DroneTest extends FunSuite {
     val exCont = DeliveriesExecutor.buildExecutor(20)
     val deliveriesResult = deliveriesList
       .map(deliveries => DroneService.multiDroneDelivery(deliveries.take(20), deliveryFunc, exCont))
+
+    val result = Future.sequence(deliveriesResult.get)
+
+    Await.result(result, 5 seconds)
+
+    val file1 = FileAccess.read("out01.txt")
+    val file2 = FileAccess.read("out02.txt")
+    val file3 = FileAccess.read("out03.txt")
+    val file4 = FileAccess.read("out04.txt")
+
+    assert(List("Delivery: (-2, 4 - N())", "Delivery: (-1, 3 - S())", "Delivery: (0, 0 - O())") == file1.get)
+    assert(List("Delivery: (-2, 3 - N())", "Delivery: (-1, 4 - E())", "Delivery: (1, 6 - N())") == file2.get)
+    assert(List("Delivery: (0, 4 - N())", "Delivery: (1, 5 - E())", "Delivery: (4, 4 - S())") == file3.get)
+    assert(List("Delivery: (-2, 0 - N())", "Delivery: (-3, 1 - N())", "Delivery: (-4, 3 - O())") == file4.get)
+
+
     assert(deliveriesResult.isSuccess)
     assert(deliveriesResult.get.length > 0)
 
