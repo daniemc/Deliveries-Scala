@@ -25,12 +25,14 @@ object FileAccess {
   }
 
   def list(path: String): Try[List[String]] = {
-    Try( new File(path).listFiles
-      .filter(file => file.isFile)
-      .map(file => file.getName)
-      .filter(file => file.startsWith("in") && file.endsWith("txt"))
-      .filter(file => file.length == 8)
-      .toList )
+    Try {
+      new File(path).listFiles
+        .filter(file => file.isFile)
+        .map(file => file.getName)
+        .filter(file => file.startsWith("in") && file.endsWith("txt"))
+        .filter(file => file.length == 8)
+        .toList
+    }
   }
 
   def getDelivery(fileName: String, ordersNumber: Int): Try[Delivery] = {
@@ -41,12 +43,14 @@ object FileAccess {
   }
 
   def getAddressList(fileLines: List[String], ordersNumber: Int): Try[List[Address]] = {
-    Try(fileLines
-      .map(addressString => getMoveList(addressString))
-      .map(moveList => moveList match {
-        case Success(ml) => new Address(ml)
-        case Failure(err) => throw new Exception(err.getMessage)
-      }).take(ordersNumber))
+    Try {
+      fileLines
+        .map(addressString => getMoveList(addressString))
+        .map(moveList => moveList match {
+          case Success(ml) => new Address(ml)
+          case Failure(err) => throw new Exception(err.getMessage)
+        }).take(ordersNumber)
+    }
   }
 
   def getMoveList(moves: String): Try[List[Move]] = {
