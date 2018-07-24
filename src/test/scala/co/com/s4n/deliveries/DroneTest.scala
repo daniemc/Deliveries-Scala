@@ -104,10 +104,10 @@ class DroneTest extends FunSuite {
     val file3 = FileAccess.read("out03.txt")
     val file4 = FileAccess.read("out04.txt")
 
-    assert(List("Delivery: (-2, 4 - N())", "Delivery: (-1, 3 - S())", "Delivery: (0, 0 - O())") == file1.get)
-    assert(List("Delivery: (-2, 3 - N())", "Delivery: (-1, 4 - E())", "Delivery: (1, 6 - N())") == file2.get)
-    assert(List("Delivery: (0, 4 - N())", "Delivery: (1, 5 - E())", "Delivery: (4, 4 - S())") == file3.get)
-    assert(List("Delivery: (-2, 0 - N())", "Delivery: (-3, 1 - N())", "Delivery: (-4, 3 - O())") == file4.get)
+    assert(List("Delivery: (-2, 4 - N())", "Delivery: (-1, 3 - S())", "Delivery: (0, 0 - O())") == file1.get.takeRight(3))
+    assert(List("Delivery: (-2, 3 - N())", "Delivery: (-1, 4 - E())", "Delivery: (1, 6 - N())") == file2.get.takeRight(3))
+    assert(List("Delivery: (0, 4 - N())", "Delivery: (1, 5 - E())", "Delivery: (4, 4 - S())") == file3.get.takeRight(3))
+    assert(List("Delivery: (-2, 0 - N())", "Delivery: (-3, 1 - N())", "Delivery: (-4, 3 - O())") == file4.get.takeRight(3))
 
 
     assert(deliveriesResult.isSuccess)
