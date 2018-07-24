@@ -114,4 +114,16 @@ class DroneTest extends FunSuite {
     assert(deliveriesResult.get.length > 0)
 
   }
+
+  test("default input files must be the same always") {
+    val file1 = FileAccess.read("in01.txt")
+    val file2 = FileAccess.read("in02.txt")
+    val file3 = FileAccess.read("in03.txt")
+    val file4 = FileAccess.read("in04.txt")
+
+    assert(List("AAAALAAR", "RRALAR", "AALARAR") == file1.get.take(3))
+    assert(List("AAALAAR", "RALAR", "AALAA") == file2.get.take(3))
+    assert(List("AAAA", "RALAR", "AAARA") == file3.get.take(3))
+    assert(List("LAAR", "ALAR", "AALA") == file4.get.take(3))
+  }
 }
