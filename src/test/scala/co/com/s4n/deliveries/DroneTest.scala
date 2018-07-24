@@ -2,7 +2,7 @@ package co.com.s4n.deliveries
 import co.com.s4n.deliveries.domain.VO._
 import co.com.s4n.deliveries.domain.entities._
 import co.com.s4n.deliveries.domain.services.{DroneService, MapLimitsService}
-import co.com.s4n.deliveries.infrastructure.FileAccess
+import co.com.s4n.deliveries.infrastructure.{DeliveriesExecutor, FileAccess}
 import org.scalatest._
 
 import scala.util.{Success, Try}
@@ -86,9 +86,12 @@ class DroneTest extends FunSuite {
 
   test("a dron can make multi deliveries from files") {
     val deliveriesList = FileAccess.list(Config.fullPath)
-    val deliveriesResult = deliveriesList.map(deliveries => DroneService.multiDroneDelivery(deliveries.take(20)))
+    val deliveryFunc = (param: String) => FileAccess.getDelivery(param, 3)
+    val exCont = DeliveriesExecutor.buildExecutor(20)
+    val deliveriesResult = deliveriesList
+      .map(deliveries => DroneService.multiDroneDelivery(deliveries.take(20), deliveryFunc, exCont))
+    assert(deliveriesResult.isSuccess)
+    assert(deliveriesResult.get.length > 0)
 
-    assert(deliveriesList.isSuccess)
-    assert(deliveriesList.get.length > 0)
   }
 }
