@@ -10,9 +10,8 @@ sealed trait MapLimitsAlgebra {
 }
 
 sealed trait  MapLimitsInterpretation extends MapLimitsAlgebra {
-  override def defaultMap: MapLimits = {
-    new MapLimits(10, 10, -10, -10)
-  }
+  override def defaultMap: MapLimits = new MapLimits(10, 10, -10, -10)
+
 
   override def validate(position: Position, cityMap: MapLimits): Try[Position] = Try {
     if(position.y >= cityMap.S && position.y <= cityMap.N && position.x >= cityMap.O && position.x <= cityMap.E)

@@ -23,10 +23,10 @@ sealed trait DroneIntepretation extends DroneAlgebra {
 
   override def prepareDrone(name: String) : Try[Drone] = Try(new Drone(name, PositionService.defaultPosition))
 
-  override def deliverOrder(address: List[Move], drone: Drone, cityMap: MapLimits): Try[Drone] = {
-    Try(address.foldLeft(drone) { (deliveryDrone, move) =>
+  override def deliverOrder(address: List[Move], drone: Drone, cityMap: MapLimits): Try[Drone] = Try {
+    address.foldLeft(drone) { (deliveryDrone, move) =>
         PositionService.reposition(move, deliveryDrone, cityMap).get
-      })
+      }
   }
 
   override def makeDeliveries(initDrone: Drone, delivery: Delivery, cityMap: MapLimits): Try[Drone] = {
@@ -48,12 +48,10 @@ sealed trait DroneIntepretation extends DroneAlgebra {
     }
   }
 
-  override def getDroneNameFromFile(file: String): Try[String] = {
-    Try {
-      val partName = file.split(Pattern.quote("."))
-      val name = partName(0).substring(2)
-      name
-    }
+  override def getDroneNameFromFile(file: String): Try[String] = Try {
+    val partName = file.split(Pattern.quote("."))
+    val name = partName(0).substring(2)
+    name
   }
 
 }
